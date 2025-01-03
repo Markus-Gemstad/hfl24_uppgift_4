@@ -1,85 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:parkmycar_admin/blocs/parking_spaces_bloc.dart';
 import 'package:parkmycar_admin/screens/parking_space_edit_dialog.dart';
-import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
 
-import '../globals.dart';
-
-class ParkingSpaceScreen extends StatefulWidget {
+class ParkingSpaceScreen extends StatelessWidget {
   const ParkingSpaceScreen({super.key});
 
   @override
-  State<ParkingSpaceScreen> createState() => _ParkingSpaceScreenState();
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Column(
+          children: [
+            _SearchBar(),
+            _SerchBody(),
+          ],
+        ),
+        Positioned(
+            bottom: 16,
+            right: 16,
+            child: FloatingActionButton(
+              onPressed: () async {
+                ParkingSpace? newItem = await showDialog<ParkingSpace>(
+                  context: context,
+                  builder: (context) => ParkingSpaceEditDialog(),
+                );
+
+                debugPrint(newItem.toString());
+
+                if (newItem != null && newItem.isValid() && context.mounted) {
+                  context
+                      .read<ParkingSpacesBloc>()
+                      .add(CreateParkingSpace(parkingSpace: newItem));
+                }
+              },
+              child: Icon(Icons.add),
+            )),
+      ],
+    );
+  }
 }
 
-class _ParkingSpaceScreenState extends State<ParkingSpaceScreen> {
-  late TextEditingController _searchController;
-  late Future<List<ParkingSpace>> allItems;
-
-  @override
-  void initState() {
-    super.initState();
-
-    allItems = getParkingSpaces();
-
-    _searchController = TextEditingController();
-    _searchController.addListener(_queryListener);
-  }
-
-  void _queryListener() {
-    _search(_searchController.text);
-  }
-
-  Future<List<ParkingSpace>> getParkingSpaces([String? query]) async {
-    var items = await ParkingSpaceHttpRepository()
-        .getAll((a, b) => a.streetAddress.compareTo(b.streetAddress));
-    if (query != null) {
-      items = items
-          .where((e) =>
-              e.streetAddress.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    }
-    // Added delay to demonstrate loading animation
-    return Future.delayed(
-        Duration(milliseconds: delayLoadInMilliseconds), () => items);
-  }
-
-  void _search(String query) {
-    setState(() {
-      allItems = getParkingSpaces(query);
-    });
-  }
-
-  Future<void> updateParkingSpace(ParkingSpace parkingSpace) async {
-    String successMessage;
-    try {
-      if (parkingSpace.id > 0) {
-        await ParkingSpaceHttpRepository().update(parkingSpace);
-        successMessage =
-            'Parkeringsplatsen ${parkingSpace.streetAddress} har updaterats!';
-      } else {
-        await ParkingSpaceHttpRepository().create(parkingSpace);
-        successMessage =
-            'Parkeringsplatsen ${parkingSpace.streetAddress} har lagts till!';
-      }
-
-      // Update listview
-      setState(() {
-        allItems = getParkingSpaces(_searchController.text);
-      });
-
-      // Use to avoid use_build_context_synchronously warning
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(successMessage)));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Det gick inte att spara parkeringsplatsen ${parkingSpace.streetAddress}!')));
-    }
-  }
-
-  Future<bool?> showDeleteDialog(ParkingSpace item) {
+class _SerchBody extends StatelessWidget {
+  Future<bool?> showDeleteDialog(ParkingSpace item, BuildContext context) {
     return showDialog<bool>(
         context: context,
         builder: (context) {
@@ -97,25 +61,120 @@ class _ParkingSpaceScreenState extends State<ParkingSpaceScreen> {
         });
   }
 
-  void removeParkingSpace(ParkingSpace item) async {
-    try {
-      await ParkingSpaceHttpRepository().delete(item.id);
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: RefreshIndicator(
+        onRefresh: () async {
+          context.read<ParkingSpacesBloc>().add(ReloadParkingSpaces());
+          await context
+              .read<ParkingSpacesBloc>()
+              .stream
+              .firstWhere((state) => state is ParkingSpacesLoaded);
+        },
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 840),
+          child: BlocBuilder<ParkingSpacesBloc, ParkingSpacesState>(
+            builder: (context, parkingSpacesState) {
+              return switch (parkingSpacesState) {
+                ParkingSpacesInitial() =>
+                  Center(child: CircularProgressIndicator()),
+                ParkingSpacesLoading() =>
+                  Center(child: CircularProgressIndicator()),
+                ParkingSpacesError(message: final message) => Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Error: $message'),
+                  ),
+                ParkingSpacesLoaded(
+                  parkingSpaces: final parkingSpaces,
+                  pending: final pending
+                ) =>
+                  (parkingSpaces.isEmpty)
+                      ? SizedBox.expand(
+                          child: Text('Hittade inga parkeringsplatser.'),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(12.0),
+                          itemCount: parkingSpaces.length,
+                          itemBuilder: (context, index) {
+                            var item = parkingSpaces[index];
+                            bool isPending = item.id == pending?.id;
+                            return ListTile(
+                              enabled: !isPending,
+                              leading: Image.asset(
+                                'assets/parking_icon.png',
+                                width: 30.0,
+                              ),
+                              title: Text(item.streetAddress),
+                              subtitle: Text('${item.postalCode} ${item.city}\n'
+                                  'Pris per timme: ${item.pricePerHour} kr'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                      icon: Icon(Icons.edit),
+                                      onPressed: () async {
+                                        ParkingSpace? updatedItem =
+                                            await showDialog<ParkingSpace>(
+                                          context: context,
+                                          builder: (context) =>
+                                              ParkingSpaceEditDialog(
+                                                  parkingSpace: item),
+                                        );
 
-      // Update listview
-      setState(() {
-        allItems = getParkingSpaces(_searchController.text);
-      });
+                                        debugPrint(updatedItem.toString());
 
-      // Use !mounted to avoid use_build_context_synchronously warning
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Parkeringsplatsen ${item.streetAddress} har tagits bort!')));
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              'Det gick inte att ta bort fordonet ${item.streetAddress}!')));
-    }
+                                        if (updatedItem != null &&
+                                            updatedItem.isValid() &&
+                                            context.mounted) {
+                                          context.read<ParkingSpacesBloc>().add(
+                                              UpdateParkingSpace(
+                                                  parkingSpace: updatedItem));
+                                        }
+                                      }),
+                                  IconButton(
+                                      icon: Icon(Icons.delete),
+                                      onPressed: () async {
+                                        var delete = await showDeleteDialog(
+                                            item, context);
+                                        if (delete == true && context.mounted) {
+                                          context.read<ParkingSpacesBloc>().add(
+                                              DeleteParkingSpace(
+                                                  parkingSpace: item));
+                                        }
+                                      }),
+                                ],
+                              ),
+                            );
+                          }),
+              }; // End of switch
+            }, // End of builder property
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchBar extends StatefulWidget {
+  @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  late TextEditingController _searchController;
+  late ParkingSpacesBloc _parkingSpacesBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(_queryListener);
+    _parkingSpacesBloc = context.read<ParkingSpacesBloc>();
+  }
+
+  void _queryListener() {
+    _parkingSpacesBloc.add(SearchParkingSpaces(query: _searchController.text));
   }
 
   @override
@@ -127,120 +186,19 @@ class _ParkingSpaceScreenState extends State<ParkingSpaceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: SearchBar(
-                leading: const Icon(Icons.search),
-                // trailing: <Widget>[ // Use for clearing search
-                //   const Icon(Icons.close),
-                //   SizedBox(
-                //     width: 6.0,
-                //   ),
-                // ],
-                hintText: 'Sök gata...',
-                controller: _searchController,
-              ),
-            ),
-            Expanded(
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 840),
-                child: FutureBuilder<List<ParkingSpace>>(
-                    future: allItems,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasData) {
-                        if (snapshot.data!.isEmpty) {
-                          return SizedBox.expand(
-                            child: Text('Hittade inga parkeringsplatser.'),
-                          );
-                        }
-
-                        return ListView.builder(
-                            padding: const EdgeInsets.all(12.0),
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              var item = snapshot.data![index];
-                              return ListTile(
-                                leading: Image.asset(
-                                  'assets/parking_icon.png',
-                                  width: 30.0,
-                                ),
-                                title: Text(item.streetAddress),
-                                subtitle: Text(
-                                    '${item.postalCode} ${item.city}\n'
-                                    'Pris per timme: ${item.pricePerHour} kr'),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                        icon: Icon(Icons.edit),
-                                        onPressed: () async {
-                                          ParkingSpace? updatedItem =
-                                              await showDialog<ParkingSpace>(
-                                            context: context,
-                                            builder: (context) =>
-                                                ParkingSpaceEditDialog(
-                                                    parkingSpace: item),
-                                          );
-
-                                          debugPrint(updatedItem.toString());
-
-                                          if (updatedItem != null &&
-                                              updatedItem.isValid()) {
-                                            await updateParkingSpace(
-                                                updatedItem);
-                                          }
-                                        }),
-                                    IconButton(
-                                        icon: Icon(Icons.delete),
-                                        onPressed: () async {
-                                          var delete =
-                                              await showDeleteDialog(item);
-                                          if (delete == true) {
-                                            removeParkingSpace(item);
-                                          }
-                                        }),
-                                  ],
-                                ),
-                              );
-                            });
-                      }
-
-                      if (snapshot.hasError) {
-                        return Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Text('Error: ${snapshot.error}'),
-                        );
-                      }
-
-                      return Center(child: CircularProgressIndicator());
-                    }),
-              ),
-            ),
-          ],
-        ),
-        Positioned(
-            bottom: 16,
-            right: 16,
-            child: FloatingActionButton(
-              onPressed: () async {
-                ParkingSpace? newItem = await showDialog<ParkingSpace>(
-                  context: context,
-                  builder: (context) => ParkingSpaceEditDialog(),
-                );
-
-                debugPrint(newItem.toString());
-
-                if (newItem != null && newItem.isValid()) {
-                  await updateParkingSpace(newItem);
-                }
-              },
-              child: Icon(Icons.add),
-            )),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: SearchBar(
+        leading: const Icon(Icons.search),
+        // trailing: <Widget>[ // Use for clearing search
+        //   const Icon(Icons.close),
+        //   SizedBox(
+        //     width: 6.0,
+        //   ),
+        // ],
+        hintText: 'Sök gata...',
+        controller: _searchController,
+      ),
     );
   }
 }

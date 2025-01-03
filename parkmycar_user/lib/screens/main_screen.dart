@@ -4,6 +4,7 @@ import 'package:parkmycar_client_shared/parkmycar_client_stuff.dart';
 import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 
 import '../blocs/active_parking_bloc.dart';
+import '../blocs/parking_spaces_bloc.dart';
 import '../blocs/parkings_bloc.dart';
 import '../blocs/vehicles_bloc.dart';
 import 'history_screen.dart';
@@ -45,6 +46,10 @@ class _MainScreenState extends State<MainScreen> {
               repository: ParkingHttpRepository(),
               repositorySpace: ParkingSpaceHttpRepository())
             ..add(LoadParkings(personId: personId));
+        }),
+        BlocProvider(create: (context) {
+          return ParkingSpacesBloc(repository: ParkingSpaceHttpRepository())
+            ..add(LoadParkingSpaces());
         }),
         BlocProvider(
           create: (_) => ActiveParkingBloc(),

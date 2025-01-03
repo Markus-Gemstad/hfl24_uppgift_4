@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:parkmycar_client_shared/parkmycar_client_stuff.dart';
+import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 
+import '../blocs/parking_spaces_bloc.dart';
 import 'parking_space_screen.dart';
 import 'statistics_screen.dart';
 
@@ -45,57 +48,67 @@ class _MainScreenState extends State<MainScreen> {
       LogoutScreen(),
     ];
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // Show bottom menu if width less than 600
-      if (constraints.maxWidth < 600) {
-        return Scaffold(
-          bottomNavigationBar: NavigationBar(
-              onDestinationSelected: (int index) {
-                setState(() {
-                  _currentScreenIndex = index;
-                });
-              },
-              selectedIndex: _currentScreenIndex,
-              destinations: destinations),
-          body: SafeArea(
-            // child: screens[_currentScreenIndex],
-            child: IndexedStack(
-              key: const GlobalObjectKey('IndexedStack'),
-              index: _currentScreenIndex,
-              children: screens,
-            ),
-          ),
-        );
-      } else {
-        // Show left menu if width is 600 or more
-        return Scaffold(
-          body: Row(
-            children: [
-              NavigationRail(
-                  extended: constraints.maxWidth >= 800,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) {
+          return ParkingSpacesBloc(repository: ParkingSpaceHttpRepository())
+            ..add(LoadParkingSpaces());
+        }),
+      ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Show bottom menu if width less than 600
+          if (constraints.maxWidth < 600) {
+            return Scaffold(
+              bottomNavigationBar: NavigationBar(
                   onDestinationSelected: (int index) {
                     setState(() {
                       _currentScreenIndex = index;
                     });
                   },
-                  destinations: destinations
-                      .map(NavigationRailDestinationFactory
-                          .fromNavigationDestination)
-                      .toList(),
-                  selectedIndex: _currentScreenIndex),
-              Expanded(
+                  selectedIndex: _currentScreenIndex,
+                  destinations: destinations),
+              body: SafeArea(
                 // child: screens[_currentScreenIndex],
                 child: IndexedStack(
                   key: const GlobalObjectKey('IndexedStack'),
                   index: _currentScreenIndex,
                   children: screens,
                 ),
-              )
-            ],
-          ),
-        );
-      }
-    });
+              ),
+            );
+          } else {
+            // Show left menu if width is 600 or more
+            return Scaffold(
+              body: Row(
+                children: [
+                  NavigationRail(
+                      extended: constraints.maxWidth >= 800,
+                      onDestinationSelected: (int index) {
+                        setState(() {
+                          _currentScreenIndex = index;
+                        });
+                      },
+                      destinations: destinations
+                          .map(NavigationRailDestinationFactory
+                              .fromNavigationDestination)
+                          .toList(),
+                      selectedIndex: _currentScreenIndex),
+                  Expanded(
+                    // child: screens[_currentScreenIndex],
+                    child: IndexedStack(
+                      key: const GlobalObjectKey('IndexedStack'),
+                      index: _currentScreenIndex,
+                      children: screens,
+                    ),
+                  )
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
