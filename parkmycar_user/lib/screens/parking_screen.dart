@@ -50,67 +50,77 @@ class ParkingScreen extends StatelessWidget {
         children: [
           _SearchBar(),
           Expanded(
-            child: BlocBuilder<ParkingSpacesBloc, ParkingSpacesState>(
-              builder: (context, parkingSpacesState) {
-                return switch (parkingSpacesState) {
-                  ParkingSpacesInitial() =>
-                    Center(child: CircularProgressIndicator()),
-                  ParkingSpacesLoading() =>
-                    Center(child: CircularProgressIndicator()),
-                  ParkingSpacesError(message: final message) => Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text('Error: $message'),
-                    ),
-                  ParkingSpacesLoaded(
-                    parkingSpaces: final parkingSpaces,
-                  ) =>
-                    (parkingSpaces.isEmpty)
-                        ? SizedBox.expand(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Text('Hittade inga parkeringsplatser.'),
-                            ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.all(12.0),
-                            itemCount: parkingSpaces.length,
-                            itemBuilder: (context, index) {
-                              var parkingSpace = parkingSpaces[index];
-                              return ListTile(
-                                onTap: () async {
-                                  // Use push instead of showDialog to only to
-                                  // make hero animation work.
-                                  Parking? parking = await Navigator.of(context)
-                                      .push<Parking>(MaterialPageRoute(
-                                          builder: (context) =>
-                                              ParkingStartDialog(
-                                                  parkingSpace)));
-
-                                  debugPrint(parking.toString());
-                                  if (parking != null &&
-                                      parking.isValid() &&
-                                      context.mounted) {
-                                    context
-                                        .read<ActiveParkingBloc>()
-                                        .add(ActiveParkingStart(parking));
-                                  }
-                                },
-                                leading: Hero(
-                                    tag: 'parkingicon${parkingSpace.id}',
-                                    transitionOnUserGestures: true,
-                                    child: Image.asset(
-                                      'assets/parking_icon.png',
-                                      width: 30.0,
-                                    )),
-                                title: Text(parkingSpace.streetAddress),
-                                subtitle: Text(
-                                    '${parkingSpace.postalCode} ${parkingSpace.city}\n'
-                                    'Pris per timme: ${parkingSpace.pricePerHour} kr'),
-                              );
-                            },
-                          ),
-                };
+            child: RefreshIndicator(
+              onRefresh: () async {
+                context.read<ParkingSpacesBloc>().add(ReloadParkingSpaces());
+                await context
+                    .read<ParkingSpacesBloc>()
+                    .stream
+                    .firstWhere((state) => state is ParkingSpacesLoaded);
               },
+              child: BlocBuilder<ParkingSpacesBloc, ParkingSpacesState>(
+                builder: (context, parkingSpacesState) {
+                  return switch (parkingSpacesState) {
+                    ParkingSpacesInitial() =>
+                      Center(child: CircularProgressIndicator()),
+                    ParkingSpacesLoading() =>
+                      Center(child: CircularProgressIndicator()),
+                    ParkingSpacesError(message: final message) => Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text('Error: $message'),
+                      ),
+                    ParkingSpacesLoaded(
+                      parkingSpaces: final parkingSpaces,
+                    ) =>
+                      (parkingSpaces.isEmpty)
+                          ? SizedBox.expand(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Text('Hittade inga parkeringsplatser.'),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(12.0),
+                              itemCount: parkingSpaces.length,
+                              itemBuilder: (context, index) {
+                                var parkingSpace = parkingSpaces[index];
+                                return ListTile(
+                                  onTap: () async {
+                                    // Use push instead of showDialog to only to
+                                    // make hero animation work.
+                                    Parking? parking =
+                                        await Navigator.of(context)
+                                            .push<Parking>(MaterialPageRoute(
+                                                builder: (context) =>
+                                                    ParkingStartDialog(
+                                                        parkingSpace)));
+
+                                    debugPrint(parking.toString());
+                                    if (parking != null &&
+                                        parking.isValid() &&
+                                        context.mounted) {
+                                      context
+                                          .read<ActiveParkingBloc>()
+                                          .add(ActiveParkingStart(parking));
+                                    }
+                                  },
+                                  leading: Hero(
+                                      tag: 'parkingicon${parkingSpace.id}',
+                                      transitionOnUserGestures: true,
+                                      child: Image.asset(
+                                        'assets/parking_icon.png',
+                                        width: 30.0,
+                                      )),
+                                  title: Text(parkingSpace.streetAddress),
+                                  subtitle: Text(
+                                      '${parkingSpace.postalCode} ${parkingSpace.city}\n'
+                                      'Pris per timme: ${parkingSpace.pricePerHour} kr'),
+                                );
+                              },
+                            ),
+                  };
+                },
+              ),
             ),
           ),
         ],

@@ -24,7 +24,7 @@ void main() {
     });
 
     group('create test', () {
-      Vehicle newVehicle = Vehicle('ABC123 ', 1);
+      Vehicle newVehicle = Vehicle('ABC123', 1, VehicleType.car);
 
       blocTest<VehiclesBloc, VehiclesState>(
         'create item test',
@@ -38,7 +38,7 @@ void main() {
         act: (bloc) =>
             bloc.add(CreateVehicle(vehicle: newVehicle, personId: 1)),
         expect: () => [
-          VehiclesLoaded(vehicles: [newVehicle])
+          VehiclesLoaded(vehicles: [newVehicle], pending: newVehicle),
         ],
         verify: (bloc) {
           verify(() => repository.create(newVehicle)).called(1);

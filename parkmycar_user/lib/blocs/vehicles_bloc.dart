@@ -29,7 +29,7 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
     try {
       emit(VehiclesLoading());
       var vehicles = await _loadVehicles(personId);
-      emit(VehiclesLoaded(vehicles: vehicles));
+      emit(VehiclesLoaded(vehicles: vehicles, pending: null));
     } on Exception catch (e) {
       emit(VehiclesError(message: e.toString()));
     }
@@ -59,7 +59,7 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
 
     try {
       await repository.create(vehicle);
-      var vehicles = await _loadVehicles(personId);
+      final vehicles = await _loadVehicles(personId);
       emit(VehiclesLoaded(vehicles: vehicles));
     } on Exception catch (e) {
       emit(VehiclesError(message: e.toString()));
