@@ -48,6 +48,7 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
 
   Future<void> onCreateVehicle(
       Vehicle vehicle, int personId, Emitter<VehiclesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       VehiclesLoaded(vehicles: final vehicles) => [...vehicles],
       _ => <Vehicle>[],
@@ -58,7 +59,10 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.create(vehicle);
+
+      // Ladda om för att säkerställa konsistens
       final vehicles = await _loadVehicles(personId);
       emit(VehiclesLoaded(vehicles: vehicles));
     } on Exception catch (e) {
@@ -68,6 +72,7 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
 
   Future<void> onUpdateVehicle(
       Vehicle vehicle, int personId, Emitter<VehiclesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       VehiclesLoaded(vehicles: final vehicles) => [...vehicles],
       _ => <Vehicle>[],
@@ -80,7 +85,10 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.update(vehicle);
+
+      // Ladda om för att säkerställa konsistens
       var vehicles = await _loadVehicles(personId);
       emit(VehiclesLoaded(vehicles: vehicles));
     } on Exception catch (e) {
@@ -90,6 +98,7 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
 
   Future<void> onDeleteVehicle(
       Vehicle vehicle, int personId, Emitter<VehiclesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       VehiclesLoaded(:final vehicles) => [...vehicles],
       _ => <Vehicle>[],
@@ -98,7 +107,10 @@ class VehiclesBloc extends Bloc<VehiclesEvent, VehiclesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.delete(vehicle.id);
+
+      // Ladda om för att säkerställa konsistens
       var vehicles = await _loadVehicles(personId);
       emit(VehiclesLoaded(vehicles: vehicles));
     } on Exception catch (e) {

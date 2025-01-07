@@ -2,18 +2,11 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
-import 'package:stream_transform/stream_transform.dart';
 
 import '../globals.dart';
 
 part 'parking_spaces_event.dart';
 part 'parking_spaces_state.dart';
-
-const _duration = Duration(milliseconds: 300);
-
-EventTransformer<Event> debounce<Event>(Duration duration) {
-  return (events, mapper) => events.debounce(duration).switchMap(mapper);
-}
 
 class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
   final ParkingSpaceHttpRepository repository;
@@ -21,8 +14,7 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
 
   ParkingSpacesBloc({required this.repository})
       : super(ParkingSpacesInitial()) {
-    on<ParkingSpacesEvent>(transformer: debounce(_duration),
-        (event, emit) async {
+    on<ParkingSpacesEvent>((event, emit) async {
       switch (event) {
         case LoadParkingSpaces():
           await onLoadParkingSpaces(emit);
@@ -88,6 +80,7 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
 
   Future<void> onCreateParkingSpace(
       ParkingSpace parkingSpace, Emitter<ParkingSpacesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       ParkingSpacesLoaded(parkingSpaces: final parkingSpaces) => [
           ...parkingSpaces
@@ -102,7 +95,10 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.create(parkingSpace);
+
+      // Ladda om för att säkerställa konsistens
       var parkingSpaces = await _loadParkingSpaces(currentQuery);
       emit(ParkingSpacesLoaded(parkingSpaces: parkingSpaces));
     } on Exception catch (e) {
@@ -112,6 +108,7 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
 
   Future<void> onUpdateParkingSpace(
       ParkingSpace parkingSpace, Emitter<ParkingSpacesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       ParkingSpacesLoaded(parkingSpaces: final parkingSpaces) => [
           ...parkingSpaces
@@ -128,7 +125,10 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.update(parkingSpace);
+
+      // Ladda om för att säkerställa konsistens
       var parkingSpaces = await _loadParkingSpaces(currentQuery);
       emit(ParkingSpacesLoaded(parkingSpaces: parkingSpaces));
     } on Exception catch (e) {
@@ -138,6 +138,7 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
 
   Future<void> onDeleteParkingSpace(
       ParkingSpace parkingSpace, Emitter<ParkingSpacesState> emit) async {
+    // Visa optimistisk uppdatering direkt
     final currentItems = switch (state) {
       ParkingSpacesLoaded(:final parkingSpaces) => [...parkingSpaces],
       _ => <ParkingSpace>[],
@@ -147,7 +148,10 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
     await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
 
     try {
+      // Faktiskt API-anrop
       await repository.delete(parkingSpace.id);
+
+      // Ladda om för att säkerställa konsistens
       var parkingSpaces = await _loadParkingSpaces(currentQuery);
       emit(ParkingSpacesLoaded(parkingSpaces: parkingSpaces));
     } on Exception catch (e) {

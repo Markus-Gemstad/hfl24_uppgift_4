@@ -21,8 +21,7 @@ class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
 
   ParkingSpacesBloc({required this.repository})
       : super(ParkingSpacesInitial()) {
-    on<ParkingSpacesEvent>(transformer: debounce(_duration),
-        (event, emit) async {
+    on<ParkingSpacesEvent>((event, emit) async {
       switch (event) {
         case LoadParkingSpaces():
           await onLoadParkingSpaces(emit);

@@ -16,7 +16,7 @@ void screenAddVehicle() async {
 
   String availablePersons = '';
   try {
-    List<Person> allPersons = await PersonHttpRepository.instance.getAll();
+    List<Person> allPersons = await PersonHttpRepository().getAll();
     if (allPersons.isNotEmpty) {
       Iterable<int> ids = allPersons.map((e) => e.id);
       availablePersons = ' (IDn: ${ids.join(',')})';
@@ -33,7 +33,7 @@ void screenAddVehicle() async {
       "Ange ID på en person$availablePersons:", Validators.isValidId);
 
   try {
-    await PersonHttpRepository.instance.getById(personId);
+    await PersonHttpRepository().getById(personId);
   } catch (e) {
     stdout.writeln("\nFEL! Det finns ingen person med angivet ID.");
     stdout.write("\nTryck ENTER för att gå tillbaka");
@@ -105,7 +105,7 @@ void screenUpdateVehicle() async {
 
   String availablePersons = '';
   try {
-    List<Person> allPersons = await PersonHttpRepository.instance.getAll();
+    List<Person> allPersons = await PersonHttpRepository().getAll();
     if (allPersons.isNotEmpty) {
       Iterable<int> ids = allPersons.map((e) => e.id);
       availablePersons = ' (IDn: ${ids.join(',')})';
@@ -122,7 +122,7 @@ void screenUpdateVehicle() async {
       "Ange ID på en person$availablePersons:", Validators.isValidId);
 
   try {
-    await PersonHttpRepository.instance.getById(personId);
+    await PersonHttpRepository().getById(personId);
   } catch (e) {
     stdout.write("\nFEL! Det finns ingen person med angivet ID.");
     stdout.write("\nTryck ENTER för att gå tillbaka");

@@ -44,7 +44,7 @@ class LogoutScreen extends StatelessWidget {
 }
 
 void createBaseData() async {
-  Person? person = await PersonHttpRepository.instance
+  Person? person = await PersonHttpRepository()
       .create(Person("Markus Gemstad", "1122334455"));
 
   final vehicleRepo = VehicleHttpRepository();

@@ -37,11 +37,11 @@ class _AccountScreenState extends State<AccountScreen> {
           if (authState.status == AuthStateStatus.authenticated) {
             //Person currentPerson = authState.user; // Get user from state
             authState.user?.name = _name!; // Update name in state
-            await PersonHttpRepository.instance.update(authState.user!);
+            await PersonHttpRepository().update(authState.user!);
           }
         } else {
           // Save new person
-          await PersonHttpRepository.instance.create(Person(_name!, _email!));
+          await PersonHttpRepository().create(Person(_name!, _email!));
         }
 
         String successMessage =

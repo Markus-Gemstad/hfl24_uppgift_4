@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
+import 'package:parkmycar_user/globals.dart';
 
 part 'parkings_event.dart';
 part 'parkings_state.dart';
@@ -36,7 +37,7 @@ class ParkingsBloc extends Bloc<ParkingsEvent, ParkingsState> {
       int personId, Emitter<ParkingsState> emit) async {
     try {
       var parkings = await _loadParkings(personId);
-      await Future.delayed(Duration(milliseconds: 2000));
+      await Future.delayed(Duration(milliseconds: delayLoadInMilliseconds));
       emit(ParkingsLoaded(parkings: parkings));
     } on Exception catch (e) {
       emit(ParkingsError(message: e.toString()));

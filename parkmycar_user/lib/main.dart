@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:provider/provider.dart';
 import 'package:parkmycar_client_shared/parkmycar_client_stuff.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +11,7 @@ void main() {
     MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (_) => AuthBloc(),
+          create: (_) => AuthBloc(repository: PersonHttpRepository()),
         ),
       ],
       child: MultiProvider(

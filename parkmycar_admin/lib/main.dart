@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:parkmycar_client_shared/parkmycar_client_stuff.dart';
@@ -8,7 +9,7 @@ import 'screens/main_screen.dart';
 void main() {
   runApp(
     BlocProvider(
-      create: (_) => AuthBloc(),
+      create: (_) => AuthBloc(repository: PersonHttpRepository()),
       child: MultiProvider(
         providers: [
           ChangeNotifierProvider(

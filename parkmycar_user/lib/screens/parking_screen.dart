@@ -13,6 +13,7 @@ class ParkingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    //TODO: Ta bort denna raden
     timeDilation = 2.0; // Make the animations go slower
     final ActiveParkingState activeParkingState =
         context.watch<ActiveParkingBloc>().state;
@@ -144,7 +145,9 @@ class _SearchBarState extends State<_SearchBar> {
     _searchController = TextEditingController();
     _searchController.addListener(_queryListener);
     _parkingSpacesBloc = context.read<ParkingSpacesBloc>();
-    _searchController.text = _parkingSpacesBloc.currentQuery!;
+    if (_parkingSpacesBloc.currentQuery != null) {
+      _searchController.text = _parkingSpacesBloc.currentQuery!;
+    }
   }
 
   void _queryListener() {

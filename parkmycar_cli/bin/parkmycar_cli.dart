@@ -32,12 +32,12 @@ void main() async {
 }
 
 prePopulateRepositories() async {
+  final personRepo = PersonHttpRepository();
   final vehicleRepo = VehicleHttpRepository();
   final parkingRepo = ParkingHttpRepository();
   final parkingSpaceRepo = ParkingSpaceHttpRepository();
 
-  await PersonHttpRepository.instance
-      .create(Person("Markus Gemstad", "1122334455"));
+  await personRepo.create(Person("Markus Gemstad", "1122334455"));
   await vehicleRepo.create(Vehicle("ABC123", 1, VehicleType.car));
   await vehicleRepo.create(Vehicle("BCD234", 1, VehicleType.motorcycle));
   await parkingSpaceRepo

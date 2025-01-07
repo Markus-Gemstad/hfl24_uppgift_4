@@ -10,11 +10,15 @@ environment:
 # Add regular dependencies here.
 dependencies:
   bloc: ^8.1.4
+  bloc_test: ^9.1.7
   equatable: ^2.0.7
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.6
+  flutter_test:
+    sdk: flutter
   http: ^1.2.2
+  mocktail: ^1.0.4
   parkmycar_shared:
     path: '../parkmycar_shared'
   provider: ^6.1.2

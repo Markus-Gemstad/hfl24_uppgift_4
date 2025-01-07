@@ -2,7 +2,7 @@ part of 'auth_bloc.dart';
 
 enum AuthStateStatus { initial, authenticating, authenticated, unauthenticated }
 
-class AuthState {
+class AuthState extends Equatable {
   final AuthStateStatus status;
   final Person? user;
 
@@ -21,22 +21,7 @@ class AuthState {
 
   const AuthState.unauthenticated()
       : this._(status: AuthStateStatus.unauthenticated, user: null);
+
+  @override
+  List<Object?> get props => [status, user];
 }
-
-// final class AuthInitial extends AuthState {
-//   AuthInitial();
-// }
-
-// final class AuthLoading extends AuthState {
-//   AuthLoading();
-// }
-
-// final class AuthSuccess extends AuthState {
-//   final Person user;
-//   AuthSuccess(this.user);
-// }
-
-// final class AuthFailure extends AuthState {
-//   final String error;
-//   AuthFailure(this.error);
-// }

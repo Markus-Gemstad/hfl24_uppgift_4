@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:parkmycar_client_shared/repositories/person_http_repository.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
 
@@ -6,7 +7,9 @@ part 'auth_state.dart';
 part 'auth_event.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(AuthState.initial()) {
+  final PersonHttpRepository repository;
+
+  AuthBloc({required this.repository}) : super(AuthState.initial()) {
     on<AuthLoginRequested>(
         (event, emit) async => await _handleLogin(event, emit));
     on<AuthLogoutRequested>(
@@ -18,7 +21,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // TODO Ta bort fördröjning
     await Future.delayed(Duration(seconds: 1));
     try {
-      List<Person> all = await PersonHttpRepository.instance.getAll();
+      List<Person> all = await repository.getAll();
       var filtered = all.where((e) => e.email == event.email);
       if (filtered.isNotEmpty) {
         Person user = filtered.first;

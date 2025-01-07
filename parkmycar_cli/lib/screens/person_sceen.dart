@@ -14,7 +14,7 @@ void screenAddPerson() async {
 
   try {
     Person? person =
-        await PersonHttpRepository.instance.create(Person(name, personnr));
+        await PersonHttpRepository().create(Person(name, personnr));
     stdout.writeln("\nPerson skapad med följande uppgifter:\n");
     stdout.writeln(person.toString());
   } catch (e) {
@@ -30,7 +30,7 @@ void screenShowAllPersons() async {
   stdout.writeln("Följande personer finns lagrade:\n");
 
   try {
-    List<Person> persons = await PersonHttpRepository.instance.getAll();
+    List<Person> persons = await PersonHttpRepository().getAll();
     persons.forEach(print);
   } catch (e) {
     stdout.writeln("\nGick inte att hämta personer. Felmeddelande: $e\n");
@@ -45,7 +45,7 @@ void screenUpdatePerson() async {
 
   String availablePersons = '';
   try {
-    List<Person> allPersons = await PersonHttpRepository.instance.getAll();
+    List<Person> allPersons = await PersonHttpRepository().getAll();
     if (allPersons.isNotEmpty) {
       Iterable<int> ids = allPersons.map((e) => e.id);
       availablePersons = ' (IDn: ${ids.join(',')})';
@@ -59,7 +59,7 @@ void screenUpdatePerson() async {
       Validators.isValidId);
 
   try {
-    await PersonHttpRepository.instance.getById(id);
+    await PersonHttpRepository().getById(id);
   } catch (e) {
     stdout.writeln("\nFEL! Det finns ingen person med angivet ID.");
     stdout.write("\nTryck ENTER för att gå tillbaka");
@@ -75,7 +75,7 @@ void screenUpdatePerson() async {
 
   try {
     Person? person =
-        await PersonHttpRepository.instance.update(Person(name, personnr, id));
+        await PersonHttpRepository().update(Person(name, personnr, id));
     stdout.writeln("\nPerson updaterad med följande uppgifter:\n");
     stdout.writeln(person.toString());
   } catch (e) {
@@ -91,7 +91,7 @@ void screenDeletePerson() async {
 
   String availablePersons = '';
   try {
-    List<Person> allPersons = await PersonHttpRepository.instance.getAll();
+    List<Person> allPersons = await PersonHttpRepository().getAll();
     if (allPersons.isNotEmpty) {
       Iterable<int> ids = allPersons.map((e) => e.id);
       availablePersons = ' (IDn: ${ids.join(',')})';
@@ -105,7 +105,7 @@ void screenDeletePerson() async {
       Validators.isValidId);
 
   try {
-    await PersonHttpRepository.instance.delete(id);
+    await PersonHttpRepository().delete(id);
     stdout.writeln("\nPerson med ID $id har tagits bort!");
   } catch (e) {
     stdout.writeln("\nFEL! Person med ID $id kunde inte tas bort! $e");
