@@ -2,18 +2,18 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
-import 'package:stream_transform/stream_transform.dart';
+// import 'package:stream_transform/stream_transform.dart';
 
 import '../globals.dart';
 
 part 'parking_spaces_event.dart';
 part 'parking_spaces_state.dart';
 
-const _duration = Duration(milliseconds: 300);
+// const _duration = Duration(milliseconds: 300);
 
-EventTransformer<Event> debounce<Event>(Duration duration) {
-  return (events, mapper) => events.debounce(duration).switchMap(mapper);
-}
+// EventTransformer<Event> debounce<Event>(Duration duration) {
+//   return (events, mapper) => events.debounce(duration).switchMap(mapper);
+// }
 
 class ParkingSpacesBloc extends Bloc<ParkingSpacesEvent, ParkingSpacesState> {
   final ParkingSpaceHttpRepository repository;

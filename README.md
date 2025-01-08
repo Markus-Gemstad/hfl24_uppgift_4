@@ -1,4 +1,4 @@
-# ParkMyCar uppgift 4
+# ParkMyCar
 
 En parkeringsapp med tillhörande server-api (webservices) och admin-gui.
 
@@ -42,6 +42,33 @@ En parkeringsapp med tillhörande server-api (webservices) och admin-gui.
 - Redigera användare (endast namn, e-post är låst)
 - Byta mellan mörkt, ljust eller automatiskt (system) tema
 
+## Uppgift 4
+
+### Nyheter
+
+- ParkMyCar user: Blocs för "active parking", Parkings, ParkingSpaces och Vehicles
+- ParkMyCar admin: Bloc för ParkingSpaces
+- Delad funkionalitet (parkmycar_client_shared): HydratedBloc för inloggning (AuthBloc) och HydratedCubit för tema-hantering (ThemeCubit)
+- Tester för alla Blocs (ej ThemeCubit) inklusive tester för fel
+- Testerna använder Mocktail för att mocka repositories
+
+### Funktioner för VG
+
+- Delade blocs och bloc-widgets mellan användar- & admin-app (AuthBloc och ThemeCubit).
+- Optimistiska uppdateringar av GUI: se Fordonssidan (VehicleScreen, användarapp) och Parkeringsplatser (ParkingSpaceScreen, adminapp)
+- Tydlig indikering på "sync in progress" som visar när en optimistisk uppdatering av state påbörjat och faktiskt är klar: se ovan
+- Persistent lagring av inloggat status och använder (AuthBloc) och valt tema (ThemeCubit)
+
+### Avgränsningar och kända begränsningar
+
+- Hade gärna velat gå "all-in" med Blocs och Cubits, nu är koden rätt blandad, men tiden rann ut
+- De gamla testerna (uppg 3) för server verkar inte fungera, inte hunnit felsöka
+- Koden för AuthBloc känns lite förvirrad tycker jag, var mitt första Bloc :)
+- Kunde inte få debounce för sökningen i ParkingSpacesBloc (både användar- och adminapp) att funka tillsammans med testet
+- Inte grundligt undersökt om stateful-widgets kan bytas ut mot stateless hela vägen där nu Blocs används
+
+## Uppgift 3
+
 ### Funktioner för VG
 
 - Sökfunktioner för parkeringsplatser
@@ -50,7 +77,7 @@ En parkeringsapp med tillhörande server-api (webservices) och admin-gui.
 - Delat kodbibliotek mellan apparna för att återanvända widgets (inloggning, skapa användare, klientrepo, tema)
 - Förslag på eget VG-kriterie - Hero-animation :-), finns för Starta parkering i användarappen.
 
-## Avgränsningar och kända begränsningar
+### Avgränsningar och kända begränsningar
 
 - Finns ingen säkerhet i inloggningen, den går på tillgångliga e-postadresser i databasen. Samma användare har full tillgång till båda apparna, dvs finns inget som säger om man är user eller admin. 
 
@@ -67,3 +94,4 @@ En parkeringsapp med tillhörande server-api (webservices) och admin-gui.
 - Skulle velat lägga till ett sätt att förlänga en parkeringstid som gått ut men hann inte. Men det visas iaf en röd text när tiden gått ut :-)
 
 - Statistiksidan är inte vacker men den gör det den ska.
+

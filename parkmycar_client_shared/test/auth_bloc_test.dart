@@ -1,5 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:parkmycar_client_shared/parkmycar_http_repo.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
@@ -9,7 +10,24 @@ class MockPersonRepository extends Mock implements PersonHttpRepository {}
 
 class FakePerson extends Fake implements Parking {}
 
+// Mock storage for hydrated_bloc
+class MockStorage extends Mock implements Storage {}
+
+late Storage hydratedStorage;
+
+void initHydratedStorage() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  hydratedStorage = MockStorage();
+  when(
+    () => hydratedStorage.write(any(), any<dynamic>()),
+  ).thenAnswer((_) async {});
+  HydratedBloc.storage = hydratedStorage;
+}
+// End mock storage for hydrated_bloc
+
 void main() {
+  initHydratedStorage();
+
   group('AuthBloc', () {
     late PersonHttpRepository mockRepo;
 
