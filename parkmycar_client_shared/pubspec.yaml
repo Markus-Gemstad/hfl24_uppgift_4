@@ -18,6 +18,7 @@ dependencies:
   flutter_test:
     sdk: flutter
   http: ^1.2.2
+  hydrated_bloc: ^9.1.5
   mocktail: ^1.0.4
   parkmycar_shared:
     path: '../parkmycar_shared'

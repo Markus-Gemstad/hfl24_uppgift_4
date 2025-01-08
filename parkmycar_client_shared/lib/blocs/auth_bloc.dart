@@ -1,12 +1,12 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:parkmycar_client_shared/repositories/person_http_repository.dart';
 import 'package:parkmycar_shared/parkmycar_shared.dart';
 
 part 'auth_state.dart';
 part 'auth_event.dart';
 
-class AuthBloc extends Bloc<AuthEvent, AuthState> {
+class AuthBloc extends HydratedBloc<AuthEvent, AuthState> {
   final PersonHttpRepository repository;
 
   AuthBloc({required this.repository}) : super(AuthState.initial()) {
@@ -36,5 +36,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _handleLogout(event, emit) async {
     emit(AuthState.initial());
+  }
+
+  @override
+  AuthState? fromJson(Map<String, dynamic> json) {
+    return switch (AuthStateStatus.values[json['status']]) {
+      AuthStateStatus.authenticated =>
+        AuthState.authenticated(PersonSerializer().fromJson(json['user'])),
+      _ => AuthState.unauthenticated(),
+    };
+  }
+
+  @override
+  Map<String, dynamic>? toJson(AuthState state) {
+    return {
+      'status': state.status.index,
+      'user':
+          state.user == null ? null : PersonSerializer().toJson(state.user!),
+    };
   }
 }

@@ -159,10 +159,12 @@ class _AccountScreenState extends State<AccountScreen> {
                           ),
                         ],
                         selected: <ThemeMode>{
-                          Provider.of<ThemeService>(context).themeMode
+                          // context.read<ThemeCubit>().state
+                          Provider.of<ThemeCubit>(context).state
                         },
                         onSelectionChanged: (p0) {
-                          Provider.of<ThemeService>(context, listen: false)
+                          // context.read<ThemeCubit>().changeThemeMode(p0.first);
+                          Provider.of<ThemeCubit>(context, listen: false)
                               .changeThemeMode(p0.first);
                         },
                       ),
